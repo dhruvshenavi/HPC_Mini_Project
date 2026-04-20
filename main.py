@@ -1,11 +1,10 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 import ctypes
 import os
 
 app = FastAPI()
 
-# enable CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -14,28 +13,27 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# load shared library
+# load library
 lib_path = os.path.join(os.path.dirname(__file__), "libparallel.so")
-print("Library path:", lib_path)
-
 lib = ctypes.CDLL(lib_path, mode=ctypes.RTLD_GLOBAL)
 
-# define function types
 lib.count_matches.argtypes = [
     ctypes.POINTER(ctypes.c_char_p),
     ctypes.c_int,
     ctypes.c_char_p
 ]
-
 lib.count_matches.restype = ctypes.c_int
 
 
-@app.post("/count")
-def count_api(data: dict):
+@app.post("/process")
+async def count_api(
+    file: UploadFile = File(...),
+    keyword: str = Form(...)
+):
+    content = await file.read()
+    text = content.decode()
 
-    lines = data["lines"]
-    keyword = data["keyword"]
-
+    lines = text.split("\n")
     n = len(lines)
 
     array_type = ctypes.c_char_p * n
