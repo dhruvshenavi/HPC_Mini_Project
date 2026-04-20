@@ -32,9 +32,9 @@ async def count_api(
 ):
     content = await file.read()
     try:
-    text = content.decode("utf-8")
+        text = content.decode("utf-8")
     except:
-    text = content.decode("latin-1")
+        text = content.decode("latin-1")
 
     lines = text.split("\n")
     n = len(lines)
