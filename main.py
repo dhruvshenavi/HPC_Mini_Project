@@ -1,14 +1,11 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import ctypes
 import os
 
-lib_path = os.path.join(os.path.dirname(__file__), "libparallel.so")
-
-print("Library path:", lib_path)   # debug log
-
-
 app = FastAPI()
 
+# enable CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,10 +14,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 # load shared library
 lib_path = os.path.join(os.path.dirname(__file__), "libparallel.so")
-lib = ctypes.CDLL(lib_path)
+print("Library path:", lib_path)
+
+lib = ctypes.CDLL(lib_path, mode=ctypes.RTLD_GLOBAL)
 
 # define function types
 lib.count_matches.argtypes = [
@@ -40,17 +38,14 @@ def count_api(data: dict):
 
     n = len(lines)
 
-    # create array
     array_type = ctypes.c_char_p * n
     arr = array_type()
 
-    # fill array (no shorthand)
     i = 0
     for line in lines:
         arr[i] = line.encode()
         i = i + 1
 
-    # call C++ function
     result = lib.count_matches(arr, n, keyword.encode())
 
     return {"count": result}
