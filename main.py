@@ -1,5 +1,6 @@
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
+from processing import run_parallel
 import ctypes
 import os
 
@@ -52,4 +53,21 @@ async def count_api(
     return {
         "keyword": keyword,
         "total_matches": result
+    }
+
+@app.post("/process_serial")
+async def process_file(
+    file: UploadFile = File(...),
+    keyword: str = Form(...)   # 🔥 NEW
+):
+    content = await file.read()
+    lines = content.decode("utf-8").split("\n")
+
+    # pass keyword to processing
+    processed, count = run_parallel(lines, keyword)
+
+    return {
+        "keyword": keyword,
+        "total_matches": count,
+        #"sample_output": processed[:10]
     }
