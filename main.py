@@ -31,7 +31,10 @@ async def count_api(
     keyword: str = Form(...)
 ):
     content = await file.read()
-    text = content.decode()
+    try:
+    text = content.decode("utf-8")
+    except:
+    text = content.decode("latin-1")
 
     lines = text.split("\n")
     n = len(lines)
@@ -46,4 +49,7 @@ async def count_api(
 
     result = lib.count_matches(arr, n, keyword.encode())
 
-    return {"count": result}
+    return {
+        "keyword": keyword,
+        "total_matches": count
+    }
