@@ -2,6 +2,11 @@ from fastapi import FastAPI
 import ctypes
 import os
 
+lib_path = os.path.join(os.path.dirname(__file__), "libparallel.so")
+
+print("Library path:", lib_path)   # debug log
+
+
 app = FastAPI()
 
 app.add_middleware(
