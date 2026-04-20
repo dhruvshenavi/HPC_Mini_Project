@@ -51,5 +51,5 @@ async def count_api(
 
     return {
         "keyword": keyword,
-        "total_matches": count
+        "total_matches": result
     }
