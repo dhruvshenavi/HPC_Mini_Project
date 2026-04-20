@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
-apt-get update
-apt-get install -y g++
-
+# compile C++ (g++ is already available on Render)
 g++ -fopenmp -shared -fPIC parallel.cpp -o libparallel.so
 
+# install python dependencies
 pip install -r requirements.txt
