@@ -1,10 +1,9 @@
-from fastapi import FastAPI, UploadFile, File, Form
-from fastapi.middleware.cors import CORSMiddleware
-from processing import run_parallel
+from fastapi import FastAPI
+import ctypes
+import os
 
 app = FastAPI()
 
-# ✅ Enable CORS (important for React)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -13,25 +12,40 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 🔹 Root endpoint
-@app.get("/")
-def home():
-    return {"message": "Backend is running 🚀"}
 
-# 🔹 Updated API with keyword input
-@app.post("/process")
-async def process_file(
-    file: UploadFile = File(...),
-    keyword: str = Form(...)   # 🔥 NEW
-):
-    content = await file.read()
-    lines = content.decode("utf-8").split("\n")
+# load shared library
+lib_path = os.path.join(os.path.dirname(__file__), "libparallel.so")
+lib = ctypes.CDLL(lib_path)
 
-    # pass keyword to processing
-    processed, count = run_parallel(lines, keyword)
+# define function types
+lib.count_matches.argtypes = [
+    ctypes.POINTER(ctypes.c_char_p),
+    ctypes.c_int,
+    ctypes.c_char_p
+]
 
-    return {
-        "keyword": keyword,
-        "total_matches": count,
-        "sample_output": processed[:10]
-    }
+lib.count_matches.restype = ctypes.c_int
+
+
+@app.post("/count")
+def count_api(data: dict):
+
+    lines = data["lines"]
+    keyword = data["keyword"]
+
+    n = len(lines)
+
+    # create array
+    array_type = ctypes.c_char_p * n
+    arr = array_type()
+
+    # fill array (no shorthand)
+    i = 0
+    for line in lines:
+        arr[i] = line.encode()
+        i = i + 1
+
+    # call C++ function
+    result = lib.count_matches(arr, n, keyword.encode())
+
+    return {"count": result}
