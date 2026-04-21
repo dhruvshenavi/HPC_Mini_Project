@@ -31,21 +31,21 @@ async def count_api(
     file: UploadFile = File(...),
     keyword: str = Form(...)
 ):
-    content = await file.read()
-    try:
-        text = content.decode("utf-8")
-    except:
-        text = content.decode("latin-1")
+    # content = await file.read()
+    # try:
+    #     text = content.decode("utf-8")
+    # except:
+    #     text = content.decode("latin-1")
 
     
-    lines = text.split(b"\n")   # no decode
+    # lines = text.split(b"\n")   # no decode
 
-    n = len(lines)
-    arr = (ctypes.c_char_p * n)(*lines)
-
-    keyword_bytes = keyword.encode()
-
-    result = lib.count_matches(arr, n, keyword_bytes)
+   content = await file.read()
+   lines = content.split(b"\n")   # bytes split (correct)
+   n = len(lines)
+   arr = (ctypes.c_char_p * n)(*lines)
+   keyword_bytes = keyword.encode()
+   result = lib.count_matches(arr, n, keyword_bytes)
 
     # lines = text.split("\n")
     # n = len(lines)
