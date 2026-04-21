@@ -37,18 +37,30 @@ async def count_api(
     except:
         text = content.decode("latin-1")
 
-    lines = text.split("\n")
+    
+    lines = text.split(b"\n")   # no decode
+
     n = len(lines)
+    arr = (ctypes.c_char_p * n)(*lines)
 
-    array_type = ctypes.c_char_p * n
-    arr = array_type()
+    keyword_bytes = keyword.encode()
 
-    i = 0
-    for line in lines:
-        arr[i] = line.encode()
-        i = i + 1
+    result = lib.count_matches(arr, n, keyword_bytes)
 
-    result = lib.count_matches(arr, n, keyword.encode())
+    # lines = text.split("\n")
+    # n = len(lines)
+
+    # array_type = ctypes.c_char_p * n
+    # arr = array_type()
+
+    # i = 0
+    # for line in lines:
+    #     arr[i] = line.encode()
+    #     i = i + 1
+
+    # result = lib.count_matches(arr, n, keyword.encode())
+
+    
 
     return {
         "keyword": keyword,
