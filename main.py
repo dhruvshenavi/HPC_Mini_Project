@@ -31,40 +31,20 @@ async def count_api(
     file: UploadFile = File(...),
     keyword: str = Form(...)
 ):
-    # content = await file.read()
-    # try:
-    #     text = content.decode("utf-8")
-    # except:
-    #     text = content.decode("latin-1")
+    content = await file.read()
 
-    
-    # lines = text.split(b"\n")   # no decode
+    lines = content.split(b"\n")   # bytes split (correct)
 
-   content = await file.read()
-   lines = content.split(b"\n")   # bytes split (correct)
-   n = len(lines)
-   arr = (ctypes.c_char_p * n)(*lines)
-   keyword_bytes = keyword.encode()
-   result = lib.count_matches(arr, n, keyword_bytes)
+    n = len(lines)
+    arr = (ctypes.c_char_p * n)(*lines)
 
-    # lines = text.split("\n")
-    # n = len(lines)
+    keyword_bytes = keyword.encode()    
 
-    # array_type = ctypes.c_char_p * n
-    # arr = array_type()
-
-    # i = 0
-    # for line in lines:
-    #     arr[i] = line.encode()
-    #     i = i + 1
-
-    # result = lib.count_matches(arr, n, keyword.encode())
-
-    
-
+    result = lib.count_matches(arr, n, keyword_bytes)
     return {
         "keyword": keyword,
-        "total_matches": result
+        "total_matches": result,
+        #"sample_output": processed[:10]
     }
 
 @app.post("/process_serial")
